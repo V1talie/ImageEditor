@@ -5,6 +5,9 @@ import editor.filters.SepiaFilter;
 import editor.filters.SharpenFilter;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
@@ -17,10 +20,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -51,6 +56,14 @@ public class ImageEditor extends Application {
             new SepiaFilter(),
             new SharpenFilter()
     );
+
+    public ImageEditor(ImageView imageView) {
+        this.imageView = imageView;
+    }
+
+    public ImageEditor() {
+
+    }
 
     private double valueOf(Color c) {
         return c.getRed() + c.getGreen() + c.getBlue();
@@ -124,6 +137,7 @@ public class ImageEditor extends Application {
         // Set the stage
         stage.setScene(scene);
         stage.setTitle("Image Editor");
+       // this.addZoomListener(drawingCanvas);
         stage.show();
     }
 
@@ -148,12 +162,14 @@ public class ImageEditor extends Application {
     }
 
 
-    private void rotateLeft() {
+    public void rotateLeft() {
         imageView.setRotate(imageView.getRotate() - 90);
+        drawingCanvas.setRotate(drawingCanvas.getRotate() - 90);
     }
 
-    private void rotateRight() {
+    public void rotateRight() {
         imageView.setRotate(imageView.getRotate() + 90);
+        drawingCanvas.setRotate(drawingCanvas.getRotate() + 90);
     }
 
 
@@ -179,6 +195,7 @@ public class ImageEditor extends Application {
         fileChooser.setTitle("Save Image");
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("PNG Files", "*.png"),
+                new FileChooser.ExtensionFilter("JPG Files", "*.jpg"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
         );
         File selectedFile = fileChooser.showSaveDialog(stage);
@@ -186,7 +203,6 @@ public class ImageEditor extends Application {
             WritableImage modifiedImage = new WritableImage((int) imageView.getFitWidth(), (int) imageView.getFitHeight());
             imageView.snapshot(null, modifiedImage);
 
-            // Add canvas changes
             SnapshotParameters parameters = new SnapshotParameters();
             parameters.setFill(Color.TRANSPARENT);
             Canvas tempCanvas = new Canvas(modifiedImage.getWidth(), modifiedImage.getHeight());
@@ -201,7 +217,7 @@ public class ImageEditor extends Application {
         }
     }
 
-    private void cropImage() { // nu lucreaza normal, trebuie de facut refactor
+    private void cropImage() {
 
         cropVisual = new Rectangle();
         cropVisual.setStroke(Color.WHITE);
@@ -258,6 +274,43 @@ public class ImageEditor extends Application {
         imageView.setViewport(cropRect);
         cancelCrop();
     }
+
+//    private void addZoomListener(Canvas drawingCanvas) {
+//        final double SCALE_DELTA = 1.1;
+//        final double MIN_SCALE = 0.1;
+//        final double MAX_SCALE = 10.0;
+//        Scale scale = new Scale(1, 1, 0, 0);
+//        drawingCanvas.getTransforms().add(scale);
+//        drawingCanvas.setOnScroll(event -> {
+//            System.out.println("asdasd");
+//            double deltaY = event.getDeltaY();
+//            double scaleFactor = deltaY > 0 ? SCALE_DELTA : 1 / SCALE_DELTA;
+//            double oldScale = scale.getX();
+//            double newScale = oldScale * scaleFactor;
+//            if (newScale > MAX_SCALE) {
+//                newScale = MAX_SCALE;
+//            } else if (newScale < MIN_SCALE) {
+//                newScale = MIN_SCALE;
+//            }
+//
+//            scale.setX(newScale);
+//            scale.setY(newScale);
+//
+//            // adjust scroll position to keep the mouse position fixed
+//            double mousePosX = (event.getX() - drawingCanvas.getBoundsInParent().getMinX()) / oldScale;
+//            double mousePosY = (event.getY() - drawingCanvas.getBoundsInParent().getMinY()) / oldScale;
+//            double scrollPosX = (mousePosX * newScale + drawingCanvas.getBoundsInParent().getMinX() - event.getX());
+//            double scrollPosY = (mousePosY * newScale + drawingCanvas.getBoundsInParent().getMinY() - event.getY());
+//
+//            drawingCanvas.setTranslateX(drawingCanvas.getTranslateX() + scrollPosX);
+//            imageView.setTranslateX(imageView.getTranslateX() + scrollPosX);
+//            drawingCanvas.setTranslateY(drawingCanvas.getTranslateY() + scrollPosY);
+//            imageView.setTranslateY(imageView.getTranslateY() + scrollPosY);
+//
+//            event.consume();
+//        });
+//    }
+
 
     public static void main(String[] args) {
         launch(args);
